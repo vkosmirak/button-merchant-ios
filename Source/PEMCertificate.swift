@@ -133,7 +133,7 @@ internal enum PEMCertificate: String {
         var keys = [SecKey]()
         if #available(iOS 10.3, *) {
             let certs = all.compactMap { $0.certificate }
-            keys += certs.compactMap { SecCertificateCopyPublicKey($0) }
+            keys += certs.compactMap { SecCertificateCopyKey($0) }
         }
         return keys
     }
