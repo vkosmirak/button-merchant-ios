@@ -79,14 +79,7 @@ final internal class TrustEvaluator: TrustEvaluatorType {
     private func validate(_ trust: SecTrust, host: String) -> Bool {
         let policy = SecPolicyCreateSSL(true, host as CFString)
         SecTrustSetPolicies(trust, policy)
-        
-        var result = SecTrustResultType.invalid
-        let status = SecTrustEvaluate(trust, &result)
-        guard status == errSecSuccess,
-            result == .proceed || result == .unspecified else {
-                return false
-        }
-        return true
+        return SecTrustEvaluateWithError(trust, nil)
     }
     
     private func evaluate(_ trust: SecTrust) -> URLSession.AuthChallengeDisposition {
@@ -94,7 +87,7 @@ final internal class TrustEvaluator: TrustEvaluatorType {
         let serverCerts = [Int](0..<count).compactMap { SecTrustGetCertificateAtIndex(trust, $0) }
         var serverKeys = [SecKey]()
         if #available(iOS 10.3, *) {
-            serverKeys = serverCerts.compactMap { SecCertificateCopyPublicKey($0) }
+            serverKeys = serverCerts.compactMap { SecCertificateCopyKey($0) }
         }
         
         for serverKey in serverKeys.reversed() {
