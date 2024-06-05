@@ -83,8 +83,17 @@ final internal class TrustEvaluator: TrustEvaluatorType {
     }
     
     private func evaluate(_ trust: SecTrust) -> URLSession.AuthChallengeDisposition {
-        let count = SecTrustGetCertificateCount(trust)
-        let serverCerts = [Int](0..<count).compactMap { SecTrustGetCertificateAtIndex(trust, $0) }
+        var serverCerts: [SecCertificate] = []
+
+        if #available(iOS 15.0, *) {
+            if let certs = SecTrustCopyCertificateChain(trust) as? [SecCertificate] {
+                serverCerts = certs
+            }
+        } else {
+            let count = SecTrustGetCertificateCount(trust)
+            serverCerts = [Int](0..<count).compactMap { SecTrustGetCertificateAtIndex(trust, $0) }
+        }
+
         var serverKeys = [SecKey]()
         if #available(iOS 10.3, *) {
             serverKeys = serverCerts.compactMap { SecCertificateCopyKey($0) }
